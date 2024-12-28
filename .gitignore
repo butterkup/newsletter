@@ -1,0 +1,6 @@
+
+# Hide my stuff
+*.ignore
+# Rust build directory
+target/
+
