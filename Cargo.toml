@@ -8,7 +8,28 @@ reqwest = "0.12.12"
 
 [dependencies]
 actix-web = "4.9.0"
-serde = { version = "1.0.217", features = ["derive"] }
+chrono = "0.4.39"
 serde_derive = "1.0.217"
-sqlx = { version = "0.8.3", default-features = false, features = ["runtime-tokio", "macros", "postgres", "uuid", "chrono", "migrate"] }
 tokio = "1.43.0"
+uuid = { version = "1.13.1", features = ["v4"] }
+
+[dependencies.config]
+version = "0.15.8"
+default-features = false
+features = ["toml"]
+
+[dependencies.serde]
+version = "1.0.217"
+features = ["derive"]
+
+[dependencies.sqlx]
+version = "0.8.3"
+default-features = false
+features = [
+  "runtime-tokio",
+  "macros",
+  "postgres",
+  "uuid",
+  "chrono",
+  "migrate"
+]

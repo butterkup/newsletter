@@ -47,6 +47,7 @@ done
 echo -e >&2 "\e[32;1mPostgres is active.\e[0m"
 
 export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWD}@localhost:${DB_PORT}/${DB_NAME}"
+echo "DATABASE_URL='$DATABASE_URL'" >"${ENV_FILE:=.env}"
 
 sqlx database create
 # sqlx migrate add create_subscriptions_table

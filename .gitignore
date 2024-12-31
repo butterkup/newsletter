@@ -3,4 +3,6 @@
 *.ignore
 # Rust build directory
 target/
+configuration.toml
+.env
 
