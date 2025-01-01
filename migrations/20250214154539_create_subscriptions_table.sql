@@ -5,6 +5,6 @@ CREATE TABLE subscriptions(
   PRIMARY KEY(id),
   email TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  subscribed_at TIMESTAMP NOT NULL -- DEFAULT now()
+  subscribed_at TIMESTAMP WITH TIME ZONE NOT NULL -- DEFAULT now()
 );
 
