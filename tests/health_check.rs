@@ -1,3 +1,4 @@
+use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor};
 
 #[actix_web::test]
@@ -59,6 +60,18 @@ async fn subscribe_returns_400_when_data_is_missing() {
   }
 }
 
+static TRACING: std::sync::LazyLock<()> = std::sync::LazyLock::new(|| {
+  let mode = "testing".into();
+  let level = "debug".into();
+  if std::env::var("TEST_LOG")
+    .is_ok_and(|value| matches!(value.to_lowercase().as_str(), "show" | "true" | "yes" | "y"))
+  {
+    newsletter::telemetry::setup_subscriber(mode, level, std::io::stdout);
+  } else {
+    newsletter::telemetry::setup_subscriber(mode, level, std::io::sink);
+  }
+});
+
 pub struct TestApp {
   pub base_url: String,
   pub pool: sqlx::PgPool,
@@ -67,6 +80,7 @@ pub struct TestApp {
 
 impl TestApp {
   pub async fn new() -> TestApp {
+    std::sync::LazyLock::force(&TRACING);
     let listener = std::net::TcpListener::bind("localhost:0").expect("Failed finding random port");
     let port = listener
       .local_addr()
@@ -89,7 +103,7 @@ impl TestApp {
   }
 
   pub async fn setup_test_db(conf: &newsletter::configuration::DatabaseSettings) -> sqlx::PgPool {
-    let mut conn = sqlx::PgConnection::connect(&conf.db_url_unnamed())
+    let mut conn = sqlx::PgConnection::connect(&conf.db_url_unnamed().expose_secret())
       .await
       .expect("Postgres won't connect");
     conn
@@ -97,7 +111,7 @@ impl TestApp {
       .await
       .expect("Failed creating test database");
     conn.close().await.expect("closing PgConnection failed");
-    let pool = sqlx::PgPool::connect(&conf.db_url())
+    let pool = sqlx::PgPool::connect(&conf.db_url().expose_secret())
       .await
       .expect("failed connecting PgPool for testing");
     sqlx::migrate!("./migrations")

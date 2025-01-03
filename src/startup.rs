@@ -1,4 +1,4 @@
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{web, App, HttpServer};
 
 pub fn run(
   listener: std::net::TcpListener,
@@ -7,7 +7,7 @@ pub fn run(
   let connection = web::Data::new(connection);
   let server = HttpServer::new(move || {
     App::new()
-      .wrap(Logger::default())
+      .wrap(tracing_actix_web::TracingLogger::default())
       .route("/health_check", web::get().to(crate::routes::health_check))
       .route("/subscriptions", web::post().to(crate::routes::subscribe))
       .app_data(connection.clone())

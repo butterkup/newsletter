@@ -1,6 +1,5 @@
 use actix_web::{web, HttpResponse};
 use uuid::Uuid;
-use tracing::Instrument;
 
 #[allow(unused)]
 #[derive(serde::Deserialize)]
@@ -9,20 +8,24 @@ pub struct User {
   email: String,
 }
 
+#[tracing::instrument(
+  name = "Adding new subscriber",
+  skip(pool, form),
+  fields(
+    subscriber_name = %form.name,
+    subscriber_email = %form.email
+  )
+)]
 pub async fn subscribe(form: web::Form<User>, pool: web::Data<sqlx::PgPool>) -> HttpResponse {
-  let request_id = uuid::Uuid::new_v4().to_string();
+  match insert_subscriber(&pool, &form).await {
+    Ok(_) => HttpResponse::Ok().finish(),
+    Err(_) => HttpResponse::InternalServerError().finish(),
+  }
+}
 
-  let request_span = tracing::info_span!(
-    "Adding new subscriber",
-    %request_id,
-    sub_name = %form.name,
-    sub_email = %form.email
-  );
-
-  let _req_span_guard = request_span.enter();
-
-  let query_span = tracing::info_span!("Saving new subscriber details into the database");
-  match sqlx::query!(
+#[tracing::instrument(name = "Saving subscriber details in database", skip(pool, form))]
+pub async fn insert_subscriber(pool: &sqlx::PgPool, form: &User) -> Result<(), sqlx::Error> {
+  sqlx::query!(
     r#"
       INSERT INTO subscriptions (id, email, name, subscribed_at)
       VALUES ($1, $2, $3, $4)
@@ -32,17 +35,12 @@ pub async fn subscribe(form: web::Form<User>, pool: web::Data<sqlx::PgPool>) -> 
     form.name,
     chrono::Local::now()
   )
-  .execute(pool.get_ref())
-  .instrument(query_span)
+  .execute(pool)
   .await
-  {
-    Ok(_) => {
-      tracing::info!("(req_id: {request_id}) New subscriber added successfully");
-      HttpResponse::Ok().finish()
-    },
-    Err(error) => {
-      tracing::error!("(req_id: {request_id}) Error when adding subscriber: {:?}", error);
-      HttpResponse::InternalServerError().body("Error creating subscription")
-    }
-  }
+  .map_err(|error| {
+    tracing::error!("Failed inserting subscriber: {error}");
+    error
+  })?;
+  tracing::info!("Subscriber added successfully");
+  Ok(())
 }
