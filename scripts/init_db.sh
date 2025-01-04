@@ -23,7 +23,7 @@ function check_deps {
   fi
 }
 
-check_deps psql sqlx
+check_deps psql
 
 if ! psql 2>/dev/null -h localhost -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c "\q"; then
   echo -e >&2 "\e[33;1mNo running instance of postgres found.\e[0m"
@@ -49,9 +49,9 @@ echo -e >&2 "\e[32;1mPostgres is active.\e[0m"
 export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWD}@localhost:${DB_PORT}/${DB_NAME}"
 echo "DATABASE_URL='$DATABASE_URL'" >"${ENV_FILE:=.env}"
 
-sqlx database create
+cargo sqlx database create
 # sqlx migrate add create_subscriptions_table
-sqlx migrate run
+cargo sqlx migrate run
 
 echo -e >&2 "\e[32;1mMigration successful.\e[0m"
 

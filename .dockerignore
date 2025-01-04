@@ -1,0 +1,10 @@
+.env
+*.ignore
+test_data.sql
+Dockerfile
+target/
+tests/
+scripts/
+migrations/
+.git/
+

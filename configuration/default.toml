@@ -1,0 +1,10 @@
+[application]
+port = 8080
+
+[database]
+port = 5432
+dbname = "newsletter"
+host = "localhost"
+password = "password"
+username = "postgres"
+

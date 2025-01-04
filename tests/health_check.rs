@@ -27,8 +27,8 @@ async fn subscribe_returns_200_for_valid_form_data() {
     .expect("Subscription request failed");
   let _saved = sqlx::query!("SELECT email, name FROM subscriptions",)
     .fetch_one(&app.pool)
-    .await;
-  //.expect("Failed to fatch saved subscription");
+    .await
+    .expect("Failed to fatch saved subscription");
   assert_eq!(resp.status().as_u16(), 200);
 }
 
@@ -81,22 +81,23 @@ pub struct TestApp {
 impl TestApp {
   pub async fn new() -> TestApp {
     std::sync::LazyLock::force(&TRACING);
-    let listener = std::net::TcpListener::bind("localhost:0").expect("Failed finding random port");
-    let port = listener
-      .local_addr()
-      .expect("Failed unwrapping assigned port")
-      .port();
     let conf = {
       let mut conf = newsletter::configuration::get_configuration();
       conf.database.dbname = uuid::Uuid::new_v4().to_string();
       conf
     };
+    let listener = std::net::TcpListener::bind(conf.application.bind_address())
+      .expect("Failed finding setting up tcp listener");
+    let port = listener
+      .local_addr()
+      .expect("Failed unwrapping assigned port")
+      .port();
     let pool = Self::setup_test_db(&conf.database).await;
     let server =
       newsletter::startup::run(listener, pool.clone()).expect("Test server startup failed");
     let _ = tokio::spawn(server);
     Self {
-      base_url: format!("http://localhost:{}", port),
+      base_url: format!("http://{}:{}", conf.application.host, port),
       pool,
       conf,
     }
