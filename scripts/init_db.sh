@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x
+# set -x
 set -eo pipefail
 
 DB_USER="${POSTGRES_USER:=postgres}"
@@ -10,11 +10,31 @@ DB_NAME="${POSTGRES_DB:=newsletter}"
 
 export PGPASSWORD="${DB_PASSWD}"
 
+ERROR_COLOR="\e[31;1m"
+OKAY_COLOR="\e[32;1m"
+INFO_COLOR="\e[34;1m"
+
+function _logger {
+  echo -e >"${LOG_FILE:-/dev/stderr}" "$color$@\e[0m"
+}
+
+function log_info {
+  color="$INFO_COLOR" _logger "$@"
+}
+
+function log_error {
+  color="$ERROR_COLOR" _logger "$@"
+}
+
+function log_okay {
+  color="$OKAY_COLOR" _logger "$@"
+}
+
 function check_deps {
   local fail_flag=false
   for cmd; do
     if ! [ -x "$(command -v "$cmd")" ]; then
-      echo >&2 "\e[31;1mMissing dependency tool: '$cmd'\e[0m"
+      log_error "Missing dependency tool: '$cmd'"
       fail_flag=true
     fi
   done
@@ -23,35 +43,44 @@ function check_deps {
   fi
 }
 
+log_info "Looking for dependencies"
 check_deps psql
 
 if ! psql 2>/dev/null -h localhost -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c "\q"; then
-  echo -e >&2 "\e[33;1mNo running instance of postgres found.\e[0m"
+  log_error "No running instance of postgres found"
   docker rm 2>/dev/null -f newsletter_db
-  echo -e >&2 "\e[32;1mCreating new instance of postgres...\e[0m"
-  docker run \
+  log_info "Creating new instance of postgres"
+  if docker run \
     --env "POSTGRES_USER=${DB_USER}" \
     --env "POSTGRES_PASSWORD=${DB_PASSWD}" \
     --env "POSTGRES_DB=${DB_NAME}" \
     --publish "${DB_PORT}:5432" \
     --name "newsletter_db" \
     --detach postgres \
-    postgres -N 1000
+    postgres -N 1000; then
+    log_okay "Postgres instance created"
+  else
+    log_error "Postgres instance creation failed"
+  fi
+else
+  log_okay "Found postgres instance"
 fi
 
 until psql 2>/dev/null -h localhost -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c "\q"; do
-  echo -e >&2 "\e[31;1mPostgres still inactive....\e[0m"
+  log_error "Postgres still inactive. Going to sleep"
   sleep 2
 done
 
-echo -e >&2 "\e[32;1mPostgres is active.\e[0m"
+log_okay "Postgres is active"
 
 export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWD}@localhost:${DB_PORT}/${DB_NAME}"
 echo "DATABASE_URL='$DATABASE_URL'" >"${ENV_FILE:=.env}"
+
+log_info "Creating database and running migrations"
 
 cargo sqlx database create
 # sqlx migrate add create_subscriptions_table
 cargo sqlx migrate run
 
-echo -e >&2 "\e[32;1mMigration successful.\e[0m"
+log_okay "Migrated successfully"
 
