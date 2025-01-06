@@ -6,7 +6,7 @@ build-job:
   image: rust:latest
   stage: build
   script:
-    - cargo build build
+    - cargo build
   artifacts:
     paths:
       - "target/"
@@ -14,7 +14,18 @@ build-job:
 test-job:
   image: rust:latest
   stage: test
+  services:
+    - name: postgres
+      alias: db
+  variables:
+    POSTGRES_USER: postres
+    POSTGRES_PASSWORD: password
+    POSTGRES_DB: newsletter
+    PORTGRES_PORT: 5432
+    POSTGRES_HOST_AUTH_METHOD: trust
+
   script:
+    - sleep 5 # wait for postgres
     - cargo fmt
     - cargo check
     - cargo test
