@@ -5,7 +5,7 @@ stages:
 build-job:
   image: rust:latest
   stage: build
-  scripts:
+  script:
     - cargo build build
   artifacts:
     paths:
@@ -14,7 +14,7 @@ build-job:
 test-job:
   image: rust:latest
   stage: test
-  scripts:
+  script:
     - cargo fmt
     - cargo check
     - cargo test
