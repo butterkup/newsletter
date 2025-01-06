@@ -54,7 +54,7 @@ impl ApplicationSettings {
 pub fn try_get_configuration() -> Result<Settings, config::ConfigError> {
   let appenv = Environment::from(
     std::env::var("APP_ENV")
-      .expect("Must provide environment for application to run")
+      .expect("Must provide environment for application to run by setting `APP_ENV`")
       .as_str(),
   );
   let config_dir = std::env::current_dir().unwrap().join("configuration");

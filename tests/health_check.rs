@@ -104,7 +104,7 @@ impl TestApp {
   }
 
   pub async fn setup_test_db(conf: &newsletter::configuration::DatabaseSettings) -> sqlx::PgPool {
-    let mut conn = sqlx::PgConnection::connect(&conf.db_url_unnamed().expose_secret())
+    let mut conn = sqlx::PgConnection::connect(conf.db_url_unnamed().expose_secret())
       .await
       .expect("Postgres won't connect");
     conn
@@ -112,7 +112,7 @@ impl TestApp {
       .await
       .expect("Failed creating test database");
     conn.close().await.expect("closing PgConnection failed");
-    let pool = sqlx::PgPool::connect(&conf.db_url().expose_secret())
+    let pool = sqlx::PgPool::connect(conf.db_url().expose_secret())
       .await
       .expect("failed connecting PgPool for testing");
     sqlx::migrate!("./migrations")

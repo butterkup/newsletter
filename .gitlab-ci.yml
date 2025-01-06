@@ -5,11 +5,13 @@ stages:
 build-job:
   image: rust:latest
   stage: build
+  variables:
+    APP_ENV: production
   script:
-    - cargo build
+    - cargo build --release
   artifacts:
     paths:
-      - "target/"
+      - target/
 
 test-job:
   image: rust:latest
@@ -23,10 +25,10 @@ test-job:
     POSTGRES_DB: newsletter
     PORTGRES_PORT: 5432
     POSTGRES_HOST_AUTH_METHOD: trust
+    APP_ENV: development
 
   script:
     - sleep 5 # wait for postgres
-    - cargo fmt
     - cargo check
     - cargo test
   dependencies:
