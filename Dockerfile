@@ -26,6 +26,5 @@ COPY --from=builder /newsletter/target/release/newsletter newsletter
 COPY configuration configuration
 
 ENV APP_ENV=production
-
 ENTRYPOINT ["/app/newsletter"]
 
