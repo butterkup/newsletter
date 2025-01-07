@@ -22,8 +22,6 @@ test-job:
   services:
     - name: postgres
       alias: test_db
-      ports:
-        - "5432:5432"
   variables:
     POSTGRES_USER: postres
     POSTGRES_PASSWORD: password
