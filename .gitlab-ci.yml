@@ -18,17 +18,19 @@ test-job:
   stage: test
   services:
     - name: postgres
-      alias: db
+      alias: test_db
   variables:
     POSTGRES_USER: postres
     POSTGRES_PASSWORD: password
     POSTGRES_DB: newsletter
     PORTGRES_PORT: 5432
     POSTGRES_HOST_AUTH_METHOD: trust
+    PGPASSWORD: $POSTGRES_PASSWORD
     APP_ENV: development
 
   script:
-    - sleep 5 # wait for postgres
+    - sleep 20
+    - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h test_db -p $POSTGRES_PORT -c '\q'; then echo Postgres "Still not responding"; fi
     - cargo check
     - cargo test
   dependencies:
