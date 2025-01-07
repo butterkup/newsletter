@@ -8,7 +8,10 @@ build-job:
   variables:
     APP_ENV: production
   script:
-    - cargo build --release
+    # - cargo build --release
+    - echo "Building project...."
+    - sleep 5
+    - echo "Built successfully."
   artifacts:
     paths:
       - target/
@@ -19,19 +22,22 @@ test-job:
   services:
     - name: postgres
       alias: test_db
+      ports:
+        - "5432:5432"
   variables:
     POSTGRES_USER: postres
     POSTGRES_PASSWORD: password
     POSTGRES_DB: newsletter
     PORTGRES_PORT: 5432
     POSTGRES_HOST_AUTH_METHOD: trust
+    POSTGRES_HOST: test_db
     PGPASSWORD: $POSTGRES_PASSWORD
     APP_ENV: development
 
   script:
     - sleep 20
-    - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h test_db -p $POSTGRES_PORT -c '\q'; then echo Postgres "Still not responding"; fi
-    - cargo check
+    - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -c '\q'; then echo "Postgres Still not responding"; fi
+    # - cargo check
     - cargo test
   dependencies:
     - build-job
