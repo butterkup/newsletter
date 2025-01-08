@@ -1,5 +1,4 @@
 stages:
-  - build
   - test
 
 build-job:
@@ -9,9 +8,6 @@ build-job:
     APP_ENV: production
   script:
     # - cargo build --release
-    - echo "Building project...."
-    - sleep 5
-    - echo "Built successfully."
   artifacts:
     paths:
       - target/
@@ -26,7 +22,6 @@ test-job:
     POSTGRES_USER: postres
     POSTGRES_PASSWORD: password
     POSTGRES_DB: newsletter
-    PORTGRES_PORT: 5432
     POSTGRES_HOST_AUTH_METHOD: trust
     POSTGRES_HOST: test_db
     PGPASSWORD: $POSTGRES_PASSWORD
@@ -34,12 +29,10 @@ test-job:
 
   script:
     - apt-get update && apt-get install -y postgresql-client nmap
-    - env | grep ^POSTGRES
-    - nmap $POSTGRES_HOST
     - sleep 10
-    - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -c '\q'; then echo "Postgres Still not responding"; fi
+    - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h $POSTGRES_HOST -p 5432 -c '\q'; then echo "Postgres Still not responding"; fi
     # - cargo check
-    # - cargo test
+    - cargo test
   dependencies:
     - build-job
 
