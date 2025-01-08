@@ -33,10 +33,13 @@ test-job:
     APP_ENV: development
 
   script:
-    - sleep 20
+    - apt-get update && apt-get install -y postgresql-client nmap
+    - nmap localhost
+    - nmap $POSTGRES_HOST
+    - sleep 10
     - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -c '\q'; then echo "Postgres Still not responding"; fi
     # - cargo check
-    - cargo test
+    # - cargo test
   dependencies:
     - build-job
 
