@@ -1,5 +1,6 @@
 stages:
   - test
+  - build
 
 build-job:
   image: rust:latest
