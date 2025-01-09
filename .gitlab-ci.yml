@@ -8,6 +8,7 @@ build-job:
     APP_ENV: production
   script:
     # - cargo build --release
+    - echo "We are building, aren't we?"
   artifacts:
     paths:
       - target/
@@ -29,7 +30,7 @@ test-job:
 
   script:
     - apt-get update && apt-get install -y postgresql-client nmap
-    - sleep 10
+    - sleep 5
     - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h $POSTGRES_HOST -p 5432 -c '\q'; then echo "Postgres Still not responding"; fi
     # - cargo check
     - cargo test
