@@ -1,4 +1,7 @@
 [application]
-host = "test_db"
+host = "localhost"
 port = 0
+
+[database]
+host = "test_db"
 
