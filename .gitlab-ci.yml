@@ -1,6 +1,6 @@
 stages:
-  - test
   - build
+  - test
 
 build-job:
   image: rust:latest
@@ -8,11 +8,10 @@ build-job:
   variables:
     APP_ENV: production
   script:
-    # - cargo build --release
-    - echo "We are building, aren't we?"
-  # artifacts:
-  #   paths:
-  #     - target/
+    - cargo build
+  artifacts:
+    paths:
+      - target/
 
 test-job:
   image: rust:latest
@@ -21,7 +20,7 @@ test-job:
     - name: postgres
       alias: test_db
   variables:
-    POSTGRES_USER: postres
+    POSTGRES_USER: postgres
     POSTGRES_PASSWORD: password
     POSTGRES_DB: newsletter
     POSTGRES_HOST_AUTH_METHOD: trust
@@ -35,6 +34,6 @@ test-job:
     - if ! psql -U $POSTGRES_USER -d $POSTGRES_DB -h $POSTGRES_HOST -p 5432 -c '\q'; then echo "Postgres Still not responding"; fi
     # - cargo check
     - cargo test
-  # dependencies:
-  #   - build-job
+  dependencies:
+    - build-job
 
